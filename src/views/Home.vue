@@ -14,7 +14,7 @@
         </el-form-item>
         <el-form-item label="类型">
           <el-select v-model="form.type" placeholder="类型" :disabled="form.category!=''" clearable class="w80" @change="form.category=''">
-            <el-option v-for="(tp,index) in types" :key="index" :label="tp.name" :value="tp.id"></el-option>
+            <el-option v-for="(tp,index) in types" :key="index" :label="tp" :value="index.toString()"></el-option>
           </el-select>
         </el-form-item>
         <el-form-item label="分类">
@@ -86,13 +86,7 @@ export default {
       }).then(res=>{
         let bills = this.$http.csvTojson(res).map((it,idx)=>{
           it.id = idx;
-          it.time = new Date(Number(it.time)).toJSON().substring(0,10);
-          it.typeName = this.types.find(el=>{
-            return el.id==it.type;
-          }).name;
-          it.catName = this.$store.state.categories.find(el=>{
-            return el.id==it.category
-          }).name;
+          it.time = new Date(Number(it.time)).toJSON();
           return it;
         })
         this.$store.commit('initBills',bills);
@@ -102,6 +96,9 @@ export default {
     }
   },
   computed:{
+    types(){
+      return this.$store.state.types
+    },
     categories(){
       return this.$store.state.categories.filter(it=>this.form.type==""||it.type==this.form.type)
     },
@@ -112,6 +109,14 @@ export default {
           let typeMatch= this.form.type==""||this.form.type==it.type;
           let catMatch = this.form.category==""||this.form.category==it.category;
           return monthMatch&&typeMatch&&catMatch;
+        }).map(it=>{
+          it.time = it.time.substring(0,10);
+          it.typeName = this.types[it.type];
+          let category = this.$store.state.categories.find(el=>{
+            return el.id==it.category
+          });
+          it.catName = category?category.name:"";
+          return it;
         })
       }catch(e){
         // console.log(e);
@@ -154,14 +159,7 @@ export default {
       defaultSort:{
         "prop":"time",
         "order":"descending"
-      },
-      types:[{
-        "name":"收入",
-        "id": "1"
-      },{
-        "name":"支出",
-        "id": "0"
-      }]
+      }
     }
   },
   methods:{

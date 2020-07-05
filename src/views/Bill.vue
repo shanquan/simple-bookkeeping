@@ -1,13 +1,18 @@
 <template>
   <div class="bill">
-    <el-form :model="form" label-position="right" label-width="80px">
+    <el-form 
+      :model="form" 
+      v-loading="loading"
+      label-position="right" 
+      label-width="80px">
       <el-form-item label="类型">
         <el-select v-model="form.type" placeholder="类型" @change="form.category=''">
           <el-option v-for="(tp,index) in types" :key="index" :label="tp" :value="index"></el-option>
         </el-select>
       </el-form-item>
       <el-form-item label="分类">
-        <el-select 
+        <el-select
+          ref="catSelect"
           v-model="form.category" 
           placeholder="分类" 
           clearable
@@ -20,7 +25,7 @@
         <el-input-number v-model="form.amount" :step="10"></el-input-number>
       </el-form-item>
       <el-form-item>
-        <el-button type="primary" :disabled="!form.amount||!form.category" @click="onSubmit()">确定</el-button>
+        <el-button type="primary" :disabled="!form.amount" @click="onSubmit()">确定</el-button>
       </el-form-item>
     </el-form>
   </div>
@@ -31,6 +36,7 @@ export default {
   name: 'bill',
   data(){
     return{
+      loading:false,
       form:{
         type: 0,
         category:"",
@@ -69,13 +75,15 @@ export default {
     },
     onSubmit(){
       let bill={};
+      this.loading = true;
       this.$http.postBill(this.form).then((res)=>{
+        this.loading = false;
         if(this.$http.mock){
           let catName,category;
           // if can't find category in global sets
           if(this.$store.state.categories.find(it=>it.name==this.form.category||it.id==this.form.category)){
             catName = this.categories.find(it=>it.id==this.form.category).name;
-          }else{
+          }else if(this.form.category){
             category = {
               "id": this.generateRandom(false,10),
               "type": this.form.type,
@@ -85,16 +93,11 @@ export default {
             this.form.category = category.id;
           }
           if(this.$route.params.id!="new"){
-            Object.assign(bill,this.form,{
-              "typeName":this.$store.state.types[this.form.type],
-              "catName": catName?catName:category.name
-              })
+            Object.assign(bill,this.form)
           }else{
             Object.assign(bill,this.form,{
               "id": this.$store.state.bills.length,
-              "typeName":this.$store.state.types[this.form.type],
-              "time": (new Date()).toJSON().substring(0,10),
-              "catName": catName?catName:category.name
+              "time": (new Date()).toJSON()
             })
           }
         }else{
@@ -104,11 +107,6 @@ export default {
             // server generated new category
             this.$store.commit('addCategory',res.category);
           }
-          res.bill.catName = this.$store.state.categories.find(el=>{
-            return el.id==this.form.category
-          }).name;
-          res.bill.time = new Date(Number(res.time)).toJSON().substring(0,10);
-          res.bill.typeName = this.$store.state.types[this.form.type];
           bill = res.bill;
         }
         this.$store.commit('editBill',bill);
