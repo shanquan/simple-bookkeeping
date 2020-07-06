@@ -4,9 +4,10 @@ import { Message } from 'element-ui'
 axios.defaults.baseURL = '/'
 axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded';
 
-// mock service
-let mock = true;
-if (mock) {
+// mode define
+// 0:local; 1:online; 2:online with mock data;
+const mode = 2;
+if (mode==2) {
     axios.defaults.baseURL = '/mock/';
     axios.interceptors.request.use(function(config) {
         if (config.url == "bills" || config.url == "categories") {
@@ -19,7 +20,7 @@ if (mock) {
     })
 }
 
-axios.interceptors.response.use(function(response) {
+axios.interceptors.response.use(response => {
         if (response.data.code) {
             Message.error('code:' + response.data.code + ',message:' + response.data.message);
             return Promise.reject(response.data);
@@ -36,16 +37,50 @@ axios.interceptors.response.use(function(response) {
     });
 
 export default {
-    mock,
-    getBills() {
-        let promise = axios.get("bills");
-        return promise;
+    mode,
+    getBills(month) {
+        if(mode==0){
+            // load data from localStorage, but IndexDB is better
+            let promise = new Promise(function(reslove,reject){
+                try{
+                    let bills = localStorage.getItem('bills');
+                    if(bills){
+                        reslove(bills);
+                    }
+                }catch(e){
+                    Message.error("load bills error:"+ e.toString());
+                    reject("load bills error:"+ e.toString());
+                }
+            })
+            return promise;
+        }else{
+            let promise = month?axios.get("bills",`month=${month}`):axios.get("bills");
+            return promise;
+        }
     },
     getCategories() {
-        let promise = axios.get("categories");
-        return promise;
+        if(mode==0){
+            // load data from localStorage
+            let promise = new Promise(function(reslove,reject){
+                try{
+                    let categories = localStorage.getItem('categories');
+                    if(categories){
+                        reslove(categories);
+                    }
+                }catch(e){
+                    Message.error("load categories error:"+ e.toString());
+                    reject("load categories error:"+ e.toString());
+                }
+            })
+            return promise;
+        }else{
+            let promise = axios.get("categories");
+            return promise;
+        }
     },
     postBill(data) { //data format: json
+        if(mode==0)
+        return new Promise(resolve=>resolve());
         let promise = axios.post("bill", data, {
             headers: {
                 'Content-Type': 'application/json'
@@ -54,24 +89,43 @@ export default {
         return promise;
     },
     deleteBill(id) { //data format: key1=value1&key2=value2
+        if(mode==0)
+        return new Promise(resolve=>resolve());
         let promise = axios.post("deleteBill", `id=${id}`);
         return promise;
     },
     csvTojson(str) {
-        let jsonObj = str.split('\n');
-        let keys = jsonObj[0].split(',')
-        jsonObj = jsonObj.slice(1).map(it => {
-            let jOb = {};
-            for (let i in keys) {
-                let k = keys[i].trim();
-                if (k == "amount" || k == "type") {
-                    jOb[k] = Number(it.split(',')[i].trim());
-                } else {
-                    jOb[k] = it.split(',')[i].trim();
+        let jsonArr = str.split('\n');
+        if(jsonArr.length){
+            let keys = jsonArr[0].split(',')
+            jsonArr = jsonArr.slice(1).map(it => {
+                let jOb = {};
+                for (let i in keys) {
+                    let k = keys[i].trim();
+                    if (k == "amount" || k == "type") {
+                        jOb[k] = Number(it.split(',')[i].trim());
+                    } else {
+                        jOb[k] = it.split(',')[i].trim();
+                    }
                 }
-            }
-            return jOb;
-        })
-        return jsonObj;
+                return jOb;
+            })
+        }
+        return jsonArr;
+    },
+    jsonTocsv(jsonArr){
+        let str = "";
+        if(jsonArr.length){
+            let fstLine = Object.keys(jsonArr[0]).join(',');
+            str += fstLine + '\n';
+            jsonArr.forEach(it=>{
+                str += Object.values(it).join(',') + '\n';
+            })
+            str = str.substring(0,str.length-1);
+        }
+        return str;
+    },
+    saveLocal(tag,data){ // for localStorage Test
+        localStorage.setItem(tag,data);
     }
 }

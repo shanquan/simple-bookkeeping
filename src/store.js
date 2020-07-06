@@ -20,6 +20,13 @@ export default new Vuex.Store({
         addCategory(state, category) {
             state.categories.push(category);
         },
+        deleteCategory(state,categoryId){
+            let idx = state.categories.findIndex(it => {
+                return it.id == categoryId
+            })
+            if (idx != -1)
+                state.categories.splice(idx, 1);
+        },
         editBill(state, bill) {
             let idx = state.bills.findIndex(it => {
                 return it.id == bill.id

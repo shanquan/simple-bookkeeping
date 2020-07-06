@@ -22,6 +22,9 @@
             <el-option v-for="(cat,index) in categories" :key="index" :label="cat.name" :value="cat.id"></el-option>
           </el-select>
         </el-form-item>
+        <el-form-item v-if="!month&&form.category&&!bills.length">
+          <el-button type="text" @click="delCategory()">删除分类</el-button>
+        </el-form-item>
       </el-form>
       <el-tabs v-model="tab">
         <el-tab-pane label="明细">
@@ -81,9 +84,12 @@ export default {
     try{
       if(!this.$store.state.categories.length)
       this.$http.getCategories().then(response=>{
+        // this.$http.saveLocal('categories',response); // for localStorage init
         this.$store.commit('initCategories',this.$http.csvTojson(response));
+        // normally fetch bills by month
         return this.$http.getBills();
       }).then(res=>{
+        // this.$http.saveLocal('bills',res); // for localStorage init
         let bills = this.$http.csvTojson(res).map((it,idx)=>{
           it.id = idx;
           it.time = new Date(Number(it.time)).toJSON();
@@ -110,13 +116,14 @@ export default {
           let catMatch = this.form.category==""||this.form.category==it.category;
           return monthMatch&&typeMatch&&catMatch;
         }).map(it=>{
-          it.time = it.time.substring(0,10);
-          it.typeName = this.types[it.type];
           let category = this.$store.state.categories.find(el=>{
             return el.id==it.category
           });
-          it.catName = category?category.name:"";
-          return it;
+          return Object.assign({},it,{
+            time: it.time.substring(0,10),
+            typeName: this.types[it.type],
+            catName: category?category.name:""
+          })
         })
       }catch(e){
         // console.log(e);
@@ -185,13 +192,33 @@ export default {
         cancelButtonText: '取消',
         type: 'warning'
       }).then(() => {
-        this.$http.deleteBill(item.id).then(response=>{
-          if(response.result=="success"){
-            this.$store.commit('deleteBill',item);
-          }else{
-            this.$message.error('删除失败：'+response);
+        this.$http.deleteBill(item.id).then(()=>{
+          this.$store.commit('deleteBill',item);
+          if(this.$http.mode==0){
+            let bills  = this.$store.state.bills.map(it=>{
+              let item = {
+                time: Date.parse(it.time),
+                id: it.id,
+                type: it.type,
+                category: it.category,
+                amount: it.amount
+              }
+              return item;
+            })
+            this.$http.saveLocal("bills",this.$http.jsonTocsv(bills));
           }
         })
+      })
+    },
+    delCategory(){
+      this.$confirm("该分类下无账单，是否删除分类？", '提示', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }).then(() => {
+        this.$store.commit('deleteCategory',this.form.category);
+        this.form.category = "";
+        this.$http.saveLocal("categories",this.$http.jsonTocsv(this.$store.state.categories));
       })
     }
   }

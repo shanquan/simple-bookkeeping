@@ -17,6 +17,16 @@ Vue.filter('fixed2', function (value) {
   return value.toFixed(2)
 })
 
+//window.INITED = false; //not recommand
+router.beforeEach((to, from, next) => {
+  let inited = from.name!=null;
+  if(to.path=='/'|| inited){
+    next();
+  }else{
+    next('/');
+  }
+})
+
 new Vue({
   router,
   store,

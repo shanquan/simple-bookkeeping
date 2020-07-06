@@ -78,19 +78,19 @@ export default {
       this.loading = true;
       this.$http.postBill(this.form).then((res)=>{
         this.loading = false;
-        if(this.$http.mock){
-          let catName,category;
+        if(this.$http.mode!=1){
           // if can't find category in global sets
-          if(this.$store.state.categories.find(it=>it.name==this.form.category||it.id==this.form.category)){
-            catName = this.categories.find(it=>it.id==this.form.category).name;
-          }else if(this.form.category){
-            category = {
+          if(this.form.category && !this.$store.state.categories.find(it=>it.name==this.form.category||it.id==this.form.category)){
+            let category = {
               "id": this.generateRandom(false,10),
               "type": this.form.type,
               "name": this.form.category
             }
             this.$store.commit('addCategory',category);
             this.form.category = category.id;
+            if(this.$http.mode==0){
+              this.$http.saveLocal("categories",this.$http.jsonTocsv(this.$store.state.categories));
+            }
           }
           if(this.$route.params.id!="new"){
             Object.assign(bill,this.form)
@@ -110,7 +110,24 @@ export default {
           bill = res.bill;
         }
         this.$store.commit('editBill',bill);
-        this.$router.push({path:"/"});
+        if(this.$http.mode==0){
+          // this.$nextTick(()=>{
+            let bills  = this.$store.state.bills.map(it=>{
+              let item = {
+                time: Date.parse(it.time),
+                id: it.id,
+                type: it.type,
+                category: it.category,
+                amount: it.amount
+              }
+              return item;
+            })
+            this.$http.saveLocal("bills",this.$http.jsonTocsv(bills));
+            this.$router.push({path:"/"});
+          // })
+        }else{
+          this.$router.push({path:"/"});
+        }
       })
     }
   }
