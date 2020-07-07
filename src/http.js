@@ -6,8 +6,8 @@ axios.defaults.headers.post['Content-Type'] = 'application/x-www-form-urlencoded
 
 // mode define
 // 0:local; 1:online; 2:online with mock data;
-const mode = 2;
-if (mode==2) {
+let mode = 2;
+if (mode == 2) {
     axios.defaults.baseURL = '/mock/';
     axios.interceptors.request.use(function(config) {
         if (config.url == "bills" || config.url == "categories") {
@@ -39,7 +39,7 @@ axios.interceptors.response.use(response => {
 export default {
     mode,
     getBills(month) {
-        if(mode==0){
+        if(this.mode==0){
             // load data from localStorage, but IndexDB is better
             let promise = new Promise(function(reslove,reject){
                 try{
@@ -59,7 +59,7 @@ export default {
         }
     },
     getCategories() {
-        if(mode==0){
+        if(this.mode==0){
             // load data from localStorage
             let promise = new Promise(function(reslove,reject){
                 try{
@@ -79,7 +79,7 @@ export default {
         }
     },
     postBill(data) { //data format: json
-        if(mode==0)
+        if(this.mode==0)
         return new Promise(resolve=>resolve());
         let promise = axios.post("bill", data, {
             headers: {
@@ -89,7 +89,7 @@ export default {
         return promise;
     },
     deleteBill(id) { //data format: key1=value1&key2=value2
-        if(mode==0)
+        if(this.mode==0)
         return new Promise(resolve=>resolve());
         let promise = axios.post("deleteBill", `id=${id}`);
         return promise;

@@ -3,14 +3,14 @@
 ## Introduction
 本项目是按照[xmindltd/hirin](https://github.com/xmindltd/hiring/tree/master/frontend-1)要求提交的作业，支持三种模式运行，参见`http.js`中的`mode`定义：(默认开发模式)
 
+请访问[vercel部署站点](https://simple-bookkeeping.vercel.app/)快速查看demo，运行离线版本：<https://simple-bookkeeping.vercel.app/?mode=0>
 1. 离线模式(mode=0)：使用localStorage保存csv数据，刷新后数据不会丢失。localStorage对数据量有限制，账单bills的保存改为indexDB存储更优
 2. 在线模式(mode=1): 使用`http.js`中的API接口处理数据，需要后端开发相关接口后才能使用
 3. 开发模式(mode=2)：将从`/mock`文件夹下取csv或json文件作为模拟数据，刷新后新增数据无法保存
 
-
 To Be Done
-- [ ] vercel.com(formerly ZEIT) Deploy
-- [x] category delete
+- [x] vercel.com(formerly ZEIT) Deploy
+- [x] delete a category if no bills are related to it
 - [x] add localstorage to support offline mode(low priority)
 - [ ] auto generate chart backgroundColor (low priority)
 - [ ] export to csv files (not sure yet, maybe need a backend server)
@@ -93,9 +93,9 @@ npm run lint
    
    `Home.vue`中因为对`computed.bills`的map处理没有注意，导致`this.$store.state.bills`数组被改变，计算属性刷新时报错导致查询不到数据，按照方式二修改后正常，在离线模式中处理`jsonTocsv`的时候也需要注意。
 
-   方式一：会改变原数组
+   方式一：会改变原数组bills
    ```
-   let bills = bills.map(it=>{
+   let arr = bills.map(it=>{
       it.time = it.time.subString(0,10);
       it.catName = '';
       delete it.catName;
@@ -103,9 +103,9 @@ npm run lint
    })
    ```
 
-   方式二：不会改变原数组
+   方式二：不会改变原数组bills
    ```
-   let bills = bills.map(it=>{
+   let arr = bills.map(it=>{
       return Object.assign({},it,{
          time: it.time.subString(0,10)
       })

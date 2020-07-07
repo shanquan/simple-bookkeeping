@@ -82,6 +82,9 @@ export default {
   },
   created(){
     try{
+      if(this.$route.query.mode!=undefined){
+        this.$http.mode = Number(this.$route.query.mode)==0?0:2;
+      }
       if(!this.$store.state.categories.length)
       this.$http.getCategories().then(response=>{
         // this.$http.saveLocal('categories',response); // for localStorage init
