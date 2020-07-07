@@ -111,5 +111,9 @@ npm run lint
       })
    })
    ```
+
+7. vercel.com集成github后不能自动部署
+   
+   因为之前安装Vercel（Now）应用的时候，Repository access给的权限是Only select repositories，所以需要依次访问github-settings-Applications-Installed Github Apps-Configure Vercel,添加应用repo的访问权限后，再次提交即可自动部署
    
    
