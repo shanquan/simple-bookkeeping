@@ -1,9 +1,9 @@
 # simple-bookkeeping 简易记账本
 
 ## Introduction
-本项目是按照[xmindltd/hirin](https://github.com/xmindltd/hiring/tree/master/frontend-1)要求提交的作业，支持三种模式运行，参见`http.js`中的`mode`定义：(默认开发模式)
+本项目是按照[xmindltd/hirin](https://github.com/xmindltd/hiring/tree/master/frontend-1)要求提交的作业，请访问[vercel部署站点](https://simple-bookkeeping.vercel.app/)快速查看demo，运行离线版本：<https://simple-bookkeeping.vercel.app/?mode=0>
 
-请访问[vercel部署站点](https://simple-bookkeeping.vercel.app/)快速查看demo，运行离线版本：<https://simple-bookkeeping.vercel.app/?mode=0>
+支持三种模式运行，参见`http.js`中的`mode`定义：(默认开发模式)
 1. 离线模式(mode=0)：使用localStorage保存csv数据，刷新后数据不会丢失。localStorage对数据量有限制，账单bills的保存改为indexDB存储更优
 2. 在线模式(mode=1): 使用`http.js`中的API接口处理数据，需要后端开发相关接口后才能使用
 3. 开发模式(mode=2)：将从`/mock`文件夹下取csv或json文件作为模拟数据，刷新后新增数据无法保存
@@ -53,7 +53,7 @@ npm run lint
 除题目需求外附加以下功能：
 1. 新增账单时，category支持用户自定义输入，并同时新增一项category
 2. 账单可以编辑和删除
-3. 账单查询（未选择月份，选择其中一个category）时，假如查询无数据，则自动显示一个删除按钮，点击可以删除分类下账单数据为空的category（To Be Done，这个功能隐藏的比较深，因为懒得再单独写个页面了，又觉得category删除功能也有必要实现下）
+3. 账单查询（未选择月份，选择其中一个category）时，假如查询无数据，则自动显示一个删除按钮，点击可以删除分类下账单数据为空的category（这个功能隐藏的比较深，因为懒得再单独写个页面了，又觉得category删除功能也有必要实现下）
 4. 账单可以根据筛选条件进行收支统计、支出统计与排名、收入统计与排名、类型统计排名（既然支出统计都做了，其他分类统计也顺便做了吧）
 5. 数据层支持三种模式，参见`http.js`中的`mode`字段定义，`mode=0`时使用localstorage离线模式，`mode=1`时使用在线API，`mode=2`时使用`mock/`文件夹下的模拟数据文件(csv or json)
 
